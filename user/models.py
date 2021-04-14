@@ -1,14 +1,17 @@
-from sqlalchemy import Column, String, Integer, DateTime, Boolean
+from sqlalchemy import (
+    Column,
+    String,
+    DateTime,
+)
+from fastapi_users.db import SQLAlchemyBaseUserTable
 from core.db import Base
 
 
-class User(Base):
-    __tablename__ = 'user'
+class User(Base, SQLAlchemyBaseUserTable):
+    """ Base user model """
 
-    id = Column(Integer, primary_key=True, index=True, unique=True)
     username = Column(String, unique=True)
-    email = Column(String, unique=True)
-    password = Column(String)
     date = Column(DateTime)
-    is_active = Column(Boolean, default=False)
-    is_admin = Column(Boolean, default=False)
+
+
+users = User.__table__

@@ -1,16 +1,37 @@
-# This is a sample Python script.
+from fastapi import FastAPI
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+from core.db import database
+from routers import routers
+
+from user.logic import jwt_authentication
+from core.fast_users import fastapi_users
+
+app = FastAPI()
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+@app.on_event('startup')
+async def startup():
+    """Connect to database when server starting"""
+
+    await database.connect()
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+@app.on_event('shutdown')
+async def shutdown():
+    """Connect to database when server stopping"""
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    await database.disconnect()
+
+
+app.include_router(routers)
+app.include_router(
+    fastapi_users.get_auth_router(jwt_authentication), prefix="/auth/jwt", tags=["auth"]
+)
+app.include_router(fastapi_users.get_users_router(), prefix="/users", tags=["users"])
+
+
+# uvicorn main:app --reload  -  start server
+# pip install fastapi\[all\]
+# Alembic: alembic init migrations(add file)
+# Alembic: alembic revision --autogenerate -m 'commit'
+# Alembic: alembic upgrade head -> migrate
